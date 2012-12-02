@@ -18,7 +18,6 @@ title: DollarJS
 ## Dependencies
 
 * [mo/lang](https://github.com/dexteryy/mo)
-* [host](https://github.com/dexteryy/OzJS) (oz.js built-in module, alternate implementation: `define("host", [], function(){ return window; });` )
 
 ## Examples
 

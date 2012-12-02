@@ -9,12 +9,10 @@
  * Copyright (C) 2010-2012, Dexter.Yy, MIT License
  * vim: et:ts=4:sw=4:sts=4
  */
-define("dollar", [
-    "mo/lang",
-    "host"
-], function(_, window){
+define("dollar", ["mo/lang"], function(_){
 
-    var doc = window.document,
+    var window = this,
+        doc = window.document,
         NEXT_SIB = 'nextElementSibling',
         PREV_SIB = 'prevElementSibling',
         FIRST_CHILD = 'firstElementChild',
@@ -690,7 +688,7 @@ define("dollar", [
     $.dasherize = css_prop;
     $.Event = Event;
 
-    $.VERSION = '1.0.0';
+    $.VERSION = '1.0.1';
 
     return $;
 
