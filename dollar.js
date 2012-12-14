@@ -225,9 +225,9 @@ define("dollar", ["mo/lang"], function(_){
         },
 
         data: kv_access(function(node, name, value){
-            node.dataset[name] = value;
+            node.dataset[css_method(name)] = value;
         }, function(node, name){
-            return (node || {}).dataset[name];
+            return (node || {}).dataset[css_method(name)];
         }),
 
         removeData: function(name){
@@ -267,7 +267,11 @@ define("dollar", ["mo/lang"], function(_){
         html: function(str){
             return str === undefined ? (this[0] || {}).innerHTML
                 : foreach_farg(this, str, 'innerHTML', function(node, str){
-                    this(node).empty().append(str);
+                    if (RE_HTMLTAG.test(str)) {
+                        this(node).empty().append(str);
+                    } else {
+                        node.innerHTML = str;
+                    }
                 }, $);
         },
 
@@ -404,10 +408,11 @@ define("dollar", ["mo/lang"], function(_){
 
         unbind: event_access('remove'),
 
-        trigger: function(event){
-            if (typeof event == 'string') {
+        trigger: function(event, argv){
+            if (typeof event === 'string') {
                 event = Event(event);
             }
+            _.mix(event, argv);
             this.forEach(event.type == 'submit' 
                 && !event.defaultPrevented ? function(node){
                 node.submit();
@@ -544,10 +549,7 @@ define("dollar", ["mo/lang"], function(_){
                     ev.push([action, i, subject[i]]);
                 }
             } else if (!cb) {
-                this.forEach(function(node){
-                    node['on' + this] = null;
-                }, subject);
-                return this;
+                return this; // not support 'removeAllEventListener'
             } else {
                 ev.push([action, subject, cb]);
             }
@@ -570,8 +572,7 @@ define("dollar", ["mo/lang"], function(_){
             }
             _.mix(event, props);
         }
-        event.initEvent(type, bubbles, true, null, null, null, null, 
-            null, null, null, null, null, null, null, null);
+        event.initEvent(type, bubbles, true);
         return event;
     }
 
@@ -616,7 +617,7 @@ define("dollar", ["mo/lang"], function(_){
                 ? window['inner' + method] 
                 : this[0] === doc 
                     ? doc.documentElement['offset' + method] 
-                    : (this.offset() || {})[method];
+                    : (this.offset() || {})[method.toLowerCase()];
         };
     }
 
@@ -682,13 +683,14 @@ define("dollar", ["mo/lang"], function(_){
 
     // public static API
 
+    $.find = $;
     $.matchesSelector = matches_selector;
     $.createNodes = create_nodes;
     $.camelize = css_method;
     $.dasherize = css_prop;
     $.Event = Event;
 
-    $.VERSION = '1.0.1';
+    $.VERSION = '1.0.2';
 
     return $;
 
