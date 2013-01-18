@@ -9,7 +9,11 @@
  * Copyright (C) 2010-2012, Dexter.Yy, MIT License
  * vim: et:ts=4:sw=4:sts=4
  */
-define("dollar", ["mo/lang"], function(_){
+define("dollar", [
+    "mo/lang/es5",
+    "mo/lang/mix",
+    "mo/lang/type"
+], function(es5, _, detect){
 
     var window = this,
         doc = window.document,
@@ -27,7 +31,9 @@ define("dollar", ["mo/lang"], function(_){
             'line-height': 1, 'opacity': 1, 'z-index': 1, 'zoom': 1 
         },
         RE_HTMLTAG = /^\s*<(\w+|!)[^>]*>/,
+        isFunction = detect.isFunction,
         _array_each = Array.prototype.forEach,
+        _array_map = Array.prototype.map,
         _array_push = Array.prototype.push,
         _getComputedStyle = document.defaultView.getComputedStyle,
         _next_pointer,
@@ -52,15 +58,28 @@ define("dollar", ["mo/lang"], function(_){
             } else {
                 return ext.find(selector);
             }
+        } else if (this === window) {
+            return new $();
         }
     }
 
-    var ext = $.fn = $.prototype = Object.create(Array.prototype);
+    var ext = $.fn = $.prototype = [];
 
-    ['map', 'filter', 'slice', 'splice', 'concat'].forEach(function(method){
+    ['map', 'filter', 'slice', 'reverse', 'sort'].forEach(function(method){
         var origin = this['_' + method] = this[method];
         this[method] = function(){
             return $(origin.apply(this, arguments));
+        };
+    }, ext);
+
+    ['splice', 'concat'].forEach(function(method){
+        var origin = this['_' + method] = this[method];
+        this[method] = function(){
+            return $(origin.apply(this._slice(), _array_map.call(
+                arguments, function(i){
+                    return i._slice();
+                })
+            ));
         };
     }, ext);
 
@@ -280,6 +299,12 @@ define("dollar", ["mo/lang"], function(_){
                 : foreach_farg(this, str, 'textContent', function(node, str){
                     node.textContent = str;
                 });
+        },
+
+        clone: function(){
+            return this.map(function(node){
+                return node.cloneNode(true);
+            });
         },
 
         css: kv_access(function(node, name, value){
@@ -506,7 +531,7 @@ define("dollar", ["mo/lang"], function(_){
     }
 
     function foreach_farg(nodes, arg, prop, cb, context){
-        var is_fn_arg = _.isFunction(arg);
+        var is_fn_arg = isFunction(arg);
         nodes.forEach(function(node, i){
             cb.call(context, node, !is_fn_arg ? arg
                 : arg.call(this, i, prop && node[prop]));
@@ -528,7 +553,7 @@ define("dollar", ["mo/lang"], function(_){
                 }
             } else {
                 if (value !== undefined) {
-                    var is_fn_arg = _.isFunction(value);
+                    var is_fn_arg = isFunction(value);
                     this.forEach(function(node, i){
                         setter(node, name, !is_fn_arg ? value 
                             : value.call(this, i, getter(node, name)));
@@ -542,24 +567,19 @@ define("dollar", ["mo/lang"], function(_){
     }
 
     function event_access(action){
-        return function(subject, cb){
-            var ev = [];
-            if (typeof subject !== 'string') {
+        function access(subject, cb){
+            if (typeof subject === 'object') {
                 for (var i in subject) {
-                    ev.push([action, i, subject[i]]);
+                    access.call(this, [i, subject[i]]);
                 }
-            } else if (!cb) {
-                return this; // not support 'removeAllEventListener'
-            } else {
-                ev.push([action, subject, cb]);
-            }
-            this.forEach(function(node){
-                this.forEach(function(pair){
-                    this[pair[0] + 'EventListener'](pair[1], pair[2], false);
-                }, node);
-            }, ev);
+            } else if (cb) {
+                this.forEach(function(node){
+                    node[action + 'EventListener'](subject, this, false);
+                }, cb);
+            }  // not support 'removeAllEventListener'
             return this;
-        };
+        }
+        return access;
     }
 
     function Event(type, props) {

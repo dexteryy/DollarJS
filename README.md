@@ -17,7 +17,9 @@ title: DollarJS
 
 ## Dependencies
 
-* [mo/lang](https://github.com/dexteryy/mo)
+* [mo/lang/es5](https://github.com/dexteryy/mo)
+* [mo/lang/mix](https://github.com/dexteryy/mo)
+* [mo/lang/type](https://github.com/dexteryy/mo)
 
 ## Examples
 
@@ -37,6 +39,10 @@ var $ = require('dollar');
 ```
 
 * `$()` -- 
+
+### API inherited from Array.prototype
+
+* support All Array methods
 
 ### API for traversing
 
@@ -103,6 +109,7 @@ var $ = require('dollar');
 * `wrapAll()` -- 
 * `wrapInner()` -- 
 * `unwrap()` -- 
+* `clone()` -- 
 * `remove()` -- 
 
 ### API for event
