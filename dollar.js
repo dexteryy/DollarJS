@@ -50,12 +50,15 @@ define("dollar", [
                 _array_push[selector.push === _array_push 
                     ? 'apply' : 'call'](nodes, selector);
                 return nodes;
-            } else if (RE_HTMLTAG.test(selector)) {
-                return create_nodes(selector);
-            } else if (context) {
-                return $(context).find(selector);
             } else {
-                return ext.find(selector);
+                selector = selector.trim();
+                if (RE_HTMLTAG.test(selector)) {
+                    return create_nodes(selector);
+                } else if (context) {
+                    return $(context).find(selector);
+                } else {
+                    return ext.find(selector);
+                }
             }
         } else if (this === window) {
             return new $();
@@ -95,7 +98,7 @@ define("dollar", [
             } else {
                 nodes.prevObject = contexts = this;
             }
-            if (/^#/.test(selector)) {
+            if (/^#[\w_]+$/.test(selector)) {
                 var elm = (contexts[0] || doc).getElementById(selector.substr(1));
                 if (elm) {
                     nodes.push(elm);
@@ -712,7 +715,7 @@ define("dollar", [
     $.dasherize = css_prop;
     $.Event = Event;
 
-    $.VERSION = '1.0.2';
+    $.VERSION = '1.1.1';
 
     return $;
 
