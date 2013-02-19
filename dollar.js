@@ -32,11 +32,9 @@ define("dollar", [
         },
         RE_HTMLTAG = /^\s*<(\w+|!)[^>]*>/,
         isFunction = detect.isFunction,
-        _array_each = Array.prototype.forEach,
         _array_map = Array.prototype.map,
         _array_push = Array.prototype.push,
         _getComputedStyle = document.defaultView.getComputedStyle,
-        _next_pointer,
         _elm_display = {},
         _html_containers = {};
 
@@ -637,7 +635,6 @@ define("dollar", [
 
     function dimension(method){
         return function(){
-            var offset;
             return this[0] === window 
                 ? window['inner' + method] 
                 : this[0] === doc 
