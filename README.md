@@ -8,12 +8,23 @@ title: DollarJS
 > * A jQuery-compatible and non-All-in-One library which is more "Zepto" than Zepto.js
 > * Focus on DOM operations and mobile platform, wrap native API wherever possible.
 
-## AMD and OzJS
+[Adapter for Android 2.x](https://github.com/dexteryy/DollarJS/blob/master/dollar/android23.js)
+
+## Usage
+
+### AMD and OzJS
 
 * DollarJS can either be viewed as an independent library, or as a part of [OzJS mirco-framework](http://ozjs.org/#framework).
 * It's wrapped as an [AMD (Asynchronous Module Definition)](https://github.com/amdjs/amdjs-api/wiki/AMD) module. You should use it with [oz.js](http://ozjs.org/#start) (or require.js or [similar](http://wiki.commonjs.org/wiki/Implementations) for handling dependencies). 
 * If you want to make it available for both other AMD code and traditional code based on global namespace. OzJS provides [a mini define/require implementation](http://ozjs.org/examples/adapter/) to transform AMD module into traditional [module pattern](http://www.adequatelygood.com/2010/3/JavaScript-Module-Pattern-In-Depth).
 * See [http://ozjs.org](http://ozjs.org) for details.
+
+### Get the code
+
+* [Download on Github](https://github.com/dexteryy/DollarJS/blob/master/dollar.js)
+* Add to your project as new dependency:
+    * via [istatic](http://ozjs.org/istatic)
+    * via [volo](https://github.com/volojs/volo)
 
 ## Dependencies
 
@@ -25,13 +36,6 @@ title: DollarJS
 
 Under construction...
 
-## Get the code
-
-* [View/download on Github](https://github.com/dexteryy/DollarJS/blob/master/dollar.js)
-* Add/update to your project as new dependency:
-    * via [istatic](https://github.com/mockee/istatic.git)
-    * via [volo](https://github.com/volojs/volo)
-
 ## API and usage
 
 ```javascript 
@@ -42,7 +46,7 @@ var $ = require('dollar');
 
 ### API inherited from Array.prototype
 
-* support All Array methods
+* support all Array methods
 
 ### API for traversing
 
@@ -151,7 +155,7 @@ Under construction...
 
 ## More References
 
-See [OzJS References](http://ozjs.org/#ref)
+See [OzJS Project Homepage](http://ozjs.org/)
 
 ## Release History
 
