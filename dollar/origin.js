@@ -781,7 +781,7 @@ define("dollar/origin", [
     $._kvAccess = kv_access;
     $._eachNode = each_node;
 
-    $.VERSION = '1.1.2';
+    $.VERSION = '1.2.0';
 
     return $;
 
