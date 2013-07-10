@@ -501,7 +501,7 @@ define("dollar/origin", [
     }
 
     function matches_selector(elm, selector){
-        return elm && elm[MATCHES_SELECTOR](selector);
+        return elm && elm.nodeType === 1 && elm[MATCHES_SELECTOR](selector);
     }
 
     function find_selector(selector, attr){
@@ -780,8 +780,6 @@ define("dollar/origin", [
     $.trigger = trigger;
     $._kvAccess = kv_access;
     $._eachNode = each_node;
-
-    $.VERSION = '1.2.0';
 
     return $;
 

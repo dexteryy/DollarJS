@@ -1,0 +1,19 @@
+{
+    "name": "urlkit",
+    "description": "A jQuery-compatible and non-All-in-One library which is more \"Zepto\" than Zepto.js",
+    "version": "1.2.1",
+    "main": "dollar.js",
+    "dependencies": {
+        "mo": "~1.5.2"
+    },
+    "ignore": [
+        "**/.*",
+        "dest",
+        "npmpackage",
+        "node_modules",
+        "components",
+        "bower_components",
+        "test",
+        "tests"
+    ]
+}
