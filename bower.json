@@ -1,5 +1,5 @@
 {
-    "name": "urlkit",
+    "name": "dollar",
     "description": "A jQuery-compatible and non-All-in-One library which is more \"Zepto\" than Zepto.js",
     "version": "1.2.1",
     "main": "dollar.js",

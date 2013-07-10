@@ -1,6 +1,6 @@
 {
-    "name": "DollarJS",
-    "description": "",
+    "name": "dollar",
+    "description": "A jQuery-compatible and non-All-in-One library which is more \"Zepto\" than Zepto.js",
     "homepage": "https://github.com/dexteryy/DollarJS",
     "author": {
         "name": "dexteryy",
