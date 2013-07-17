@@ -272,6 +272,9 @@ define("dollar/origin", [
             node.dataset[css_method(name)] = value;
         }, function(node, name){
             var data = (node || {}).dataset;
+            if (!data) {
+                return null;
+            }
             return name ? data[css_method(name)] 
                 : _.mix({}, data);
         }),
@@ -468,7 +471,7 @@ define("dollar/origin", [
                 $(this).off(subject, fn);
                 return cb.apply(this, arguments);
             };
-            $(this).on(subject, fn);
+            return $(this).on(subject, fn);
         },
 
         trigger: trigger,

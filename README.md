@@ -120,6 +120,7 @@ var $ = require('dollar');
 
 ### API for event
 
+* `once()` -- 
 * `bind()` -- 
 * `unbind()` -- 
 * `trigger()` -- 
