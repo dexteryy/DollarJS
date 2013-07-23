@@ -26,6 +26,7 @@ define("dollar/origin", [
             }, doc.body).filter(pick)[0],
         MOUSE_EVENTS = { click: 1, mousedown: 1, mouseup: 1, mousemove: 1 },
         TOUCH_EVENTS = { touchstart: 1, touchmove: 1, touchend: 1, touchcancel: 1 },
+        SPECIAL_TRIGGERS = { submit: 1, focus: 1, blur: 1 },
         CSS_NUMBER = { 
             'column-count': 1, 'columns': 1, 'font-weight': 1, 
             'line-height': 1, 'opacity': 1, 'z-index': 1, 'zoom': 1 
@@ -646,15 +647,15 @@ define("dollar/origin", [
             event = Event(event);
         }
         _.mix(event, data);
-        me.forEach(event.type == 'submit' 
-            && !event.defaultPrevented 
-                ? function(node){
-                    node.submit();
-                } : function(node){
-                    if ('dispatchEvent' in node) {
-                        node.dispatchEvent(this);
-                    }
-                }, event);
+        me.forEach((SPECIAL_TRIGGERS[event.type]
+                && !event.defaultPrevented) 
+            ? function(node){
+                node[event.type]();
+            } : function(node){
+                if ('dispatchEvent' in node) {
+                    node.dispatchEvent(this);
+                }
+            }, event);
         return this;
     }
 
