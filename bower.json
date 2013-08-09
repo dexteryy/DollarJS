@@ -1,7 +1,7 @@
 {
     "name": "dollar",
     "description": "A jQuery-compatible and non-All-in-One library which is more \"Zepto\" than Zepto.js",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "main": "dollar.js",
     "dependencies": {
         "mo": "~1.5.2"
