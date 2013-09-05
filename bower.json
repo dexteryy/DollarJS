@@ -4,7 +4,7 @@
     "version": "1.2.4",
     "main": "dollar.js",
     "dependencies": {
-        "mo": "~1.5.2"
+        "mo": "~1.6.0"
     },
     "ignore": [
         "**/.*",

@@ -20,7 +20,7 @@ define("dollar/origin", [
         NEXT_SIB = 'nextElementSibling',
         PREV_SIB = 'previousElementSibling',
         FIRST_CHILD = 'firstElementChild',
-        MATCHES_SELECTOR = ['webkitMatchesSelector', 'mozMatchesSelector', 'matchesSelector']
+        MATCHES_SELECTOR = ['webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'matchesSelector']
             .map(function(name){
                 return this[name] && name;
             }, doc.body).filter(pick)[0],
