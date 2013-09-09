@@ -27,16 +27,20 @@ define("dollar/origin", [
         MOUSE_EVENTS = { click: 1, mousedown: 1, mouseup: 1, mousemove: 1 },
         TOUCH_EVENTS = { touchstart: 1, touchmove: 1, touchend: 1, touchcancel: 1 },
         SPECIAL_TRIGGERS = { submit: 1, focus: 1, blur: 1 },
-        CSS_NUMBER = { 
-            'column-count': 1, 'columns': 1, 'font-weight': 1, 
-            'line-height': 1, 'opacity': 1, 'z-index': 1, 'zoom': 1 
+        CSS_NUMBER = {
+            'column-count': 1,
+            'columns': 1,
+            'font-weight': 1,
+            'line-height': 1,
+            'opacity': 1,
+            'z-index': 1,
+            'zoom': 1
         },
         RE_HTMLTAG = /^\s*<(\w+|!)[^>]*>/,
         isFunction = detect.isFunction,
         _array_map = Array.prototype.map,
         _array_push = Array.prototype.push,
         _array_slice = Array.prototype.slice,
-        _getComputedStyle = document.defaultView.getComputedStyle,
         _elm_display = {},
         _html_containers = {};
 
@@ -56,7 +60,7 @@ define("dollar/origin", [
             } else {
                 selector = selector.trim();
                 if (RE_HTMLTAG.test(selector)) {
-                    return create_nodes(selector);
+                    return $.createNodes(selector);
                 } else if (context) {
                     return $(context).find(selector);
                 } else {
@@ -111,14 +115,14 @@ define("dollar/origin", [
                     nodes.push(elm);
                 }
             } else {
-                var query = /\W/.test(selector) ? 'querySelectorAll' 
-                                                : 'getElementsByTagName';
                 if (contexts[1]) {
                     contexts.forEach(function(context){
-                        this.push.apply(this, _array_slice.call(context[query](selector)));
+                        _array_push.apply(this, 
+                            _array_slice.call($._querySelector(context, selector)));
                     }, nodes);
                 } else if (contexts[0]) {
-                    nodes.push.apply(nodes, _array_slice.call(contexts[0][query](selector)));
+                    _array_push.apply(nodes, 
+                        _array_slice.call($._querySelector(contexts[0], selector)));
                 }
             }
             return nodes;
@@ -132,13 +136,13 @@ define("dollar/origin", [
         not: function(selector){
             return this.filter(function(node){
                 return node && !this(node, selector);
-            }, matches_selector);
+            }, $.matchesSelector);
         },
 
         has: function(selector){
             return this.filter(function(node){
                 return this(node, selector);
-            }, matches_selector);
+            }, $.matchesSelector);
         },
 
         parent: find_near('parentNode'),
@@ -197,7 +201,7 @@ define("dollar/origin", [
 
         is: function(selector){
             return this.some(function(node){
-                return matches_selector(node, selector);
+                return $.matchesSelector(node, selector);
             });
         },
 
@@ -208,19 +212,6 @@ define("dollar/origin", [
                 }
             }
             return false;
-        },
-
-        isEmpty: function(){
-            return this.every(function(elm){
-                if (!elm.innerHTML) {
-                    elm.innerHTML = ' ';
-                    if (!elm.innerHTML) {
-                        return true;
-                    }
-                    elm.innerHTML = '';
-                }
-                return false;
-            });
         },
 
         // Properties
@@ -348,7 +339,7 @@ define("dollar/origin", [
             }
         }, function(node, name){
             return node && (node.style[css_method(name)] 
-                || _getComputedStyle(node, '').getPropertyValue(name));
+                || $.getPropertyValue(node, name));
         }, function(self, dict){
             var prop, value, css = '';
             for (var name in dict) {
@@ -376,10 +367,10 @@ define("dollar/origin", [
                 if (node.style.display === "none") {
                     node.style.display = null;
                 }
-                if (this(node, '').getPropertyValue("display") === "none") {
+                if (this(node, "display") === "none") {
                     node.style.display = default_display(node.nodeName);
                 }
-            }, _getComputedStyle);
+            }, $.getPropertyValue);
             return this;
         },
 
@@ -498,6 +489,7 @@ define("dollar/origin", [
 
     ext.bind = ext.on;
     ext.unbind = ext.off;
+    ext.one = ext.once;
 
     // private
 
@@ -505,16 +497,12 @@ define("dollar/origin", [
         return v; 
     }
 
-    function matches_selector(elm, selector){
-        return elm && elm.nodeType === 1 && elm[MATCHES_SELECTOR](selector);
-    }
-
     function find_selector(selector, attr){
         return function(node){
             if (attr) {
                 node = node[attr];
             }
-            if (matches_selector(node, selector)) {
+            if ($.matchesSelector(node, selector)) {
                 this.push(node);
             }
             return node;
@@ -526,7 +514,7 @@ define("dollar/origin", [
             return $(_.unique([undefined, doc, null].concat(
                 this._map(selector ? function(node){
                     var n = node[prop];
-                    if (n && matches_selector(n, selector)) {
+                    if (n && $.matchesSelector(n, selector)) {
                         return n;
                     }
                 } : function(node){
@@ -553,7 +541,7 @@ define("dollar/origin", [
                         break;
                     }
                     if (node !== n && (!selector 
-                        || matches_selector(n, selector))) {
+                        || $.matchesSelector(n, selector))) {
                         this.push(n);
                     }
                 } while (n = n[prop]);
@@ -605,7 +593,7 @@ define("dollar/origin", [
                     access.call(this, [i, subject[i]]);
                 }
             } else if (cb) {
-                subject = Event.aliases[subject] || subject;
+                subject = $.Event.aliases[subject] || subject;
                 this.forEach(function(node){
                     node[action + 'EventListener'](subject, this, false);
                 }, cb);
@@ -614,27 +602,6 @@ define("dollar/origin", [
         }
         return access;
     }
-
-    function Event(type, props) {
-        var bubbles = true,
-            is_touch = TOUCH_EVENTS[type],
-            event = document.createEvent(is_touch && 'TouchEvent' 
-                || MOUSE_EVENTS[type] && 'MouseEvents' 
-                || 'Events');
-        if (props) {
-            if ('bubbles' in props) {
-                bubbles = !!props.bubbles;
-                delete props.bubbles;
-            }
-            _.mix(event, props);
-        }
-        type = Event.aliases[type] || type;
-        event[is_touch && 'initTouchEvent' 
-            || 'initEvent'](type, bubbles, true);
-        return event;
-    }
-
-    Event.aliases = {};
 
     function trigger(me, event, data){
         if (this === $) {
@@ -645,7 +612,7 @@ define("dollar/origin", [
             me = this;
         }
         if (typeof event === 'string') {
-            event = Event(event);
+            event = $.Event(event);
         }
         _.mix(event, data);
         me.forEach((SPECIAL_TRIGGERS[event.type]
@@ -684,7 +651,7 @@ define("dollar/origin", [
         if (!display) {
             var tmp = document.createElement(tag);
             doc.body.appendChild(tmp);
-            display = _getComputedStyle(tmp, '').getPropertyValue("display");
+            display = $.getPropertyValue(tmp, "display");
             tmp.parentNode.removeChild(tmp);
             if (display === "none") {
                 display = "block";
@@ -704,41 +671,26 @@ define("dollar/origin", [
         };
     }
 
-    function create_nodes(str, attrs){
-        var tag = (RE_HTMLTAG.exec(str) || [])[0] || str;
-        var temp = _html_containers[tag];
-        if (!temp) {
-            temp = _html_containers[tag] = tag === 'tr' && document.createElement('tbody')
-                || (tag === 'tbody' || tag === 'thead' || tag === 'tfoot') 
-                    && document.createElement('table')
-                || (tag === 'td' || tag === 'th') && document.createElement('tr')
-                || document.createElement('div');
-        }
-        temp.innerHTML = str;
-        var nodes = new $();
-        _array_push.apply(nodes, _array_slice.call(temp.childNodes));
-        nodes.forEach(function(node){
-            this.removeChild(node);
-        }, temp);
-        if (attrs) {
-            for (var k in attrs) {
-                nodes.attr(k, attrs[k]);
-            }
-        }
-        return nodes;
-    }
-
     function insert_node(target, node, action){
         if (node.nodeName.toUpperCase() === 'SCRIPT' 
                 && (!node.type || node.type === 'text/javascript')) {
             window['eval'].call(window, node.innerHTML);
         }
         switch(action) {
-            case 1: target.appendChild(node); break;
-            case 2: target.parentNode.insertBefore(node, target); break;
-            case 3: target.insertBefore(node, target.firstChild); break;
-            case 4: target.parentNode.insertBefore(node, target.nextSibling); break;
-            default: break;
+        case 1:
+            target.appendChild(node);
+            break;
+        case 2: 
+            target.parentNode.insertBefore(node, target);
+            break;
+        case 3:
+            target.insertBefore(node, target.firstChild);
+            break;
+        case 4:
+            target.parentNode.insertBefore(node, target.nextSibling);
+            break;
+        default:
+            break;
         }
     }
 
@@ -777,12 +729,75 @@ define("dollar/origin", [
     // public static API
 
     $.find = $;
-    $.matchesSelector = matches_selector;
-    $.createNodes = create_nodes;
+
+    $._querySelector = function(context, selector){
+        return _array_slice.call(context.querySelectorAll(selector));
+    };
+
+    $.matchesSelector = function(elm, selector){
+        return elm && elm.nodeType === 1 && elm[MATCHES_SELECTOR](selector);
+    };
+
+    $.createNodes = function(str, attrs){
+        var tag = (RE_HTMLTAG.exec(str) || [])[0] || str;
+        var temp = _html_containers[tag];
+        if (!temp) {
+            temp = _html_containers[tag] = tag === 'tr' && document.createElement('tbody')
+                || (tag === 'tbody' || tag === 'thead' || tag === 'tfoot') 
+                    && document.createElement('table')
+                || (tag === 'td' || tag === 'th') && document.createElement('tr')
+                || document.createElement('div');
+        }
+        temp.innerHTML = str;
+        var nodes = new $();
+        _array_push.apply(nodes, _array_slice.call(temp.childNodes));
+        nodes.forEach(function(node){
+            this.removeChild(node);
+        }, temp);
+        if (attrs) {
+            for (var k in attrs) {
+                nodes.attr(k, attrs[k]);
+            }
+        }
+        return nodes;
+    };
+
+    $.getStyles = window.getComputedStyle && function(elm){
+        return window.getComputedStyle(elm, null);
+    } || document.documentElement.currentStyle && function(elm){
+        return elm.currentStyle;
+    };
+
+    $.getPropertyValue = function(elm, name){
+        var styles = $.getStyles(elm);
+        return styles.getPropertyValue && styles.getPropertyValue(name) || styles[name];
+    };
+
+    $.Event = function(type, props) {
+        var real_type = $.Event.aliases[type] || type;
+        var bubbles = true,
+            is_touch = TOUCH_EVENTS[type],
+            event = document.createEvent(is_touch && 'TouchEvent' 
+                || MOUSE_EVENTS[type] && 'MouseEvents' 
+                || 'Events');
+        if (props) {
+            if ('bubbles' in props) {
+                bubbles = !!props.bubbles;
+                delete props.bubbles;
+            }
+            _.mix(event, props);
+        }
+        event[is_touch && 'initTouchEvent' 
+            || 'initEvent'](real_type, bubbles, true);
+        return event;
+    };
+
+    $.Event.aliases = {};
+
+    $.trigger = trigger;
+
     $.camelize = css_method;
     $.dasherize = css_prop;
-    $.Event = Event;
-    $.trigger = trigger;
     $._kvAccess = kv_access;
     $._eachNode = each_node;
 

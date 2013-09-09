@@ -16,9 +16,10 @@ define("dollar/android23", [
     "dollar/origin"
 ], function(es5, _, detect, $){
 
-    var css_method = $.camelize;
+    var ext = $.fn,
+        css_method = $.camelize;
 
-    _.mix($.fn, {
+    _.mix(ext, {
 
         data: $._kvAccess(function(node, name, value){
             node.setAttribute('data-' + prop2data(name), value);
@@ -32,7 +33,7 @@ define("dollar/android23", [
                     .split(/\s+/)
                     .forEach(function(html){ 
                         var attr = (/^data-([\w\-]+)/.exec(html) || []); 
-                        if (data[0]) {
+                        if (attr[0]) {
                             this[css_method(attr[1])] = node.getAttribute(attr[0]);
                         }
                     }, data);
