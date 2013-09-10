@@ -20,10 +20,14 @@ define("dollar/origin", [
         NEXT_SIB = 'nextElementSibling',
         PREV_SIB = 'previousElementSibling',
         FIRST_CHILD = 'firstElementChild',
-        MATCHES_SELECTOR = ['webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'matchesSelector']
-            .map(function(name){
-                return this[name] && name;
-            }, doc.body).filter(pick)[0],
+        MATCHES_SELECTOR = [
+            'webkitMatchesSelector', 
+            'mozMatchesSelector', 
+            'msMatchesSelector', 
+            'matchesSelector'
+        ].map(function(name){
+            return this[name] && name;
+        }, doc.body).filter(pick)[0],
         MOUSE_EVENTS = { click: 1, mousedown: 1, mouseup: 1, mousemove: 1 },
         TOUCH_EVENTS = { touchstart: 1, touchmove: 1, touchend: 1, touchcancel: 1 },
         SPECIAL_TRIGGERS = { submit: 1, focus: 1, blur: 1 },
@@ -37,7 +41,8 @@ define("dollar/origin", [
             'zoom': 1
         },
         RE_HTMLTAG = /^\s*<(\w+|!)[^>]*>/,
-        isFunction = detect.isFunction,
+        is_function = detect.isFunction,
+        is_window = detect.isWindow,
         _array_map = Array.prototype.map,
         _array_push = Array.prototype.push,
         _array_slice = Array.prototype.slice,
@@ -67,7 +72,7 @@ define("dollar/origin", [
                     return ext.find(selector);
                 }
             }
-        } else if (this === window) {
+        } else if (is_window(this)) {
             return new $();
         }
     }
@@ -118,11 +123,11 @@ define("dollar/origin", [
                 if (contexts[1]) {
                     contexts.forEach(function(context){
                         _array_push.apply(this, 
-                            _array_slice.call($._querySelector(context, selector)));
+                            $._querySelector(context, selector));
                     }, nodes);
                 } else if (contexts[0]) {
                     _array_push.apply(nodes, 
-                        _array_slice.call($._querySelector(contexts[0], selector)));
+                        $._querySelector(contexts[0], selector));
                 }
             }
             return nodes;
@@ -149,9 +154,11 @@ define("dollar/origin", [
 
         parents: function(selector){
             var ancestors = new $(), p = this,
-                finding = selector ? find_selector(selector, 'parentNode') : function(node){
-                    return this[this.push(node.parentNode) - 1];
-                };
+                finding = selector 
+                    ? find_selector(selector, 'parentNode') 
+                    : function(node){
+                        return this[this.push(node.parentNode) - 1];
+                    };
             while (p.length) {
                 p = p.map(finding, ancestors);
             }
@@ -217,28 +224,34 @@ define("dollar/origin", [
         // Properties
 
         addClass: function(cname){
-            return each_node(this, cname, 'className', function(node, cname){
-                node.classList.add(cname);
+            return nodes_access.call(this, cname, function(node, value){
+                node.classList.add(value);
+            }, function(node){
+                return node.className;
             });
         },
 
         removeClass: function(cname){
-            return each_node(this, cname, 'className', function(node, cname){
-                node.classList.remove(cname);
+            return nodes_access.call(this, cname, function(node, value){
+                node.classList.remove(value);
+            }, function(node){
+                return node.className;
             });
         },
 
         toggleClass: function(cname, force){
-            return each_node(this, cname, 'className', function(node, cname){
+            return nodes_access.call(this, cname, function(node, value){
                 node.classList[force === undefined && 'toggle'
-                                    || this && 'add' || 'remove'](cname);
+                    || force && 'add' || 'remove'](value);
+            }, function(node){
+                return node.className;
             });
         },
 
         attr: kv_access(function(node, name, value){
             node.setAttribute(name, value);
         }, function(node, name){
-            return node && node.getAttribute(name);
+            return node.getAttribute(name);
         }),
 
         removeAttr: function(name){
@@ -251,7 +264,7 @@ define("dollar/origin", [
         prop: kv_access(function(node, name, value){
             node[name] = value;
         }, function(node, name){
-            return (node || {})[name];
+            return node[name];
         }),
 
         removeProp: function(name){
@@ -264,9 +277,9 @@ define("dollar/origin", [
         data: kv_access(function(node, name, value){
             node.dataset[css_method(name)] = value;
         }, function(node, name){
-            var data = (node || {}).dataset;
+            var data = node.dataset;
             if (!data) {
-                return null;
+                return;
             }
             return name ? data[css_method(name)] 
                 : _.mix({}, data);
@@ -279,25 +292,18 @@ define("dollar/origin", [
             return this;
         },
 
-        val: function(value){
-            var node = this[0];
-            if (value === undefined) {
-                if (node) {
-                    if (node.multiple) {
-                        return $('option', this).filter(function(item){
-                            return item.selected;
-                        }).map(function(item){
-                            return item.value;
-                        });
-                    }
-                    return node.value;
-                }
-            } else {
-                return each_node(this, value, 'value', function(node, value){
-                    node.value = value;
+        val: v_access(function(node, value){
+            node.value = value;
+        }, function(node){
+            if (this.multiple) {
+                return $('option', this).filter(function(item){
+                    return item.selected;
+                }).map(function(item){
+                    return item.value;
                 });
             }
-        },
+            return node.value;
+        }),
 
         empty: function(){
             this.forEach(function(node){
@@ -306,23 +312,21 @@ define("dollar/origin", [
             return this;
         },
 
-        html: function(str){
-            return str === undefined ? (this[0] || {}).innerHTML
-                : each_node(this, str, 'innerHTML', function(node, str){
-                    if (RE_HTMLTAG.test(str)) {
-                        this(node).empty().append(str);
-                    } else {
-                        node.innerHTML = str;
-                    }
-                }, $);
-        },
+        html: v_access(function(node, value){
+            if (RE_HTMLTAG.test(value)) {
+                $(node).empty().append(value);
+            } else {
+                node.innerHTML = value;
+            }
+        }, function(node){
+            return node.innerHTML;
+        }),
 
-        text: function(str){
-            return str === undefined ? (this[0] || {}).textContent
-                : each_node(this, str, 'textContent', function(node, str){
-                    node.textContent = str;
-                });
-        },
+        text: v_access(function(node, value){
+            node.textContent = value;
+        }, function(node){
+            return node.textContent;
+        }),
 
         clone: function(){
             return this.map(function(node){
@@ -338,22 +342,22 @@ define("dollar/origin", [
                 node.style.cssText += ';' + prop + ":" + css_unit(prop, value);
             }
         }, function(node, name){
-            return node && (node.style[css_method(name)] 
-                || $.getPropertyValue(node, name));
-        }, function(self, dict){
+            return node.style[css_method(name)] 
+                || $.getPropertyValue(node, name);
+        }, function(dict){
             var prop, value, css = '';
             for (var name in dict) {
                 value = dict[name];
                 prop = css_prop(name);
                 if (!value && value !== 0) {
-                    self.forEach(function(node){
+                    this.forEach(function(node){
                         node.style.removeProperty(this);
                     }, prop);
                 } else {
                     css += prop + ":" + css_unit(prop, value) + ';';
                 }
             }
-            self.forEach(function(node){
+            this.forEach(function(node){
                 node.style.cssText += ';' + this;
             }, css);
         }),
@@ -390,6 +394,10 @@ define("dollar/origin", [
 
         height: dimension('Height'),
 
+        scrollLeft: scroll_offset(),
+
+        scrollTop: scroll_offset(true),
+
         // Manipulation
 
         appendTo: operator_insert_to(1),
@@ -420,9 +428,9 @@ define("dollar/origin", [
         },
 
         wrap: function(boxes){
-            return each_node(this, boxes, false, function(node, boxes){
-                this(boxes).insertBefore(node).append(node);
-            }, $);
+            return nodes_access.call(this, boxes, function(node, value){
+                $(value).insertBefore(node).append(node);
+            });
         },
 
         wrapAll: function(boxes){
@@ -431,9 +439,9 @@ define("dollar/origin", [
         },
 
         wrapInner: function(boxes){
-            return each_node(this, boxes, false, function(node, boxes){
-                this(node).contents().wrapAll(boxes);
-            }, $);
+            return nodes_access.call(this, boxes, function(node, value){
+                $(node).contents().wrapAll(value);
+            });
         },
 
         unwrap: function(){
@@ -550,36 +558,55 @@ define("dollar/origin", [
         };
     }
 
-    function each_node(nodes, arg, prop, cb, context){
-        var is_fn_arg = isFunction(arg);
-        nodes.forEach(function(node, i){
-            cb.call(context, node, !is_fn_arg ? arg
-                : arg.call(this, i, prop && node[prop]));
-        }, nodes);
-        return nodes;
+    function nodes_access(value, setter, getter, name){
+        if (value === null || value === undefined) {
+            return this;
+        }
+        var is_fn_arg = is_function(value);
+        this.forEach(function(node, i){
+            if (!node) {
+                return;
+            }
+            var v = !is_fn_arg 
+                ? value 
+                : value.call(this, i, 
+                    getter && getter.call(this, node, name));
+            setter.call(this, node, name || v, v);
+        }, this);
+        return this;
+    }
+
+    function v_access(setter, getter){
+        return function(value){
+            if (arguments.length > 0) {
+                return nodes_access.call(this, value, setter, getter);
+            } else if (this[0]) {
+                return getter.call(this, this[0]);
+            }
+            return this;
+        };
     }
 
     function kv_access(setter, getter, map){
         return function(name, value){
             if (typeof name === 'object') {
                 if (map) {
-                    map(this, name);
+                    map.call(this, name);
                 } else {
                     for (var k in name) {
                         this.forEach(function(node){
-                            setter(node, this, name[this]);
-                        }, k);
+                            if (!node) {
+                                return;
+                            }
+                            setter.call(this, node, k, name[k]);
+                        }, this);
                     }
                 }
             } else {
-                if (value !== undefined) {
-                    var is_fn_arg = isFunction(value);
-                    this.forEach(function(node, i){
-                        setter(node, name, !is_fn_arg ? value 
-                            : value.call(this, i, getter(node, name)));
-                    }, this);
-                } else {
-                    return getter(this[0], name);
+                if (arguments.length > 1) {
+                    return nodes_access.call(this, value, setter, getter, name);
+                } else if (this[0]) {
+                    return getter.call(this, this[0], name);
                 }
             }
             return this;
@@ -663,11 +690,21 @@ define("dollar/origin", [
 
     function dimension(method){
         return function(){
-            return this[0] === window 
-                ? window['inner' + method] 
-                : this[0] === doc 
-                    ? doc.documentElement['offset' + method] 
+            var node = this[0];
+            return is_window(node)
+                ? node['inner' + method]
+                : node.nodeType === 9 
+                    ? node.documentElement['offset' + method] 
                     : (this.offset() || {})[method.toLowerCase()];
+        };
+    }
+
+    function scroll_offset(is_top){
+        var method = 'scroll' + is_top ? 'Top' : 'Left',
+            prop = 'page' + (is_top ? 'Y' : 'X') + 'Offset';
+        return function(){
+            var node = this[0];
+            return is_window(node) ? node[prop] : node[method];
         };
     }
 
@@ -742,10 +779,12 @@ define("dollar/origin", [
         var tag = (RE_HTMLTAG.exec(str) || [])[0] || str;
         var temp = _html_containers[tag];
         if (!temp) {
-            temp = _html_containers[tag] = tag === 'tr' && document.createElement('tbody')
+            temp = _html_containers[tag] = tag === 'tr' 
+                    && document.createElement('tbody')
                 || (tag === 'tbody' || tag === 'thead' || tag === 'tfoot') 
                     && document.createElement('table')
-                || (tag === 'td' || tag === 'th') && document.createElement('tr')
+                || (tag === 'td' || tag === 'th') 
+                    && document.createElement('tr')
                 || document.createElement('div');
         }
         temp.innerHTML = str;
@@ -770,7 +809,8 @@ define("dollar/origin", [
 
     $.getPropertyValue = function(elm, name){
         var styles = $.getStyles(elm);
-        return styles.getPropertyValue && styles.getPropertyValue(name) || styles[name];
+        return styles.getPropertyValue 
+            && styles.getPropertyValue(name) || styles[name];
     };
 
     $.Event = function(type, props) {
@@ -798,8 +838,9 @@ define("dollar/origin", [
 
     $.camelize = css_method;
     $.dasherize = css_prop;
+    $._vAccess = v_access;
     $._kvAccess = kv_access;
-    $._eachNode = each_node;
+    $._nodesAccess = nodes_access;
 
     return $;
 

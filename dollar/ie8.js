@@ -5,10 +5,9 @@ define('dollar/ie8', [
     'mo/lang/type',
     'dollar/android23',
     'jquery'
-], function(es5, _, detect, $){
+], function(es5, _, detect, $, jq){
 
-    var window = this,
-        jq = window.jQuery;
+    var _array_slice = Array.prototype.slice;
 
     var ext = $.fn;
 
@@ -31,8 +30,8 @@ define('dollar/ie8', [
             jq(node).css(name, value);
         }, function(node, name){
             return jq(node).css(name);
-        }, function(self, dict){
-            jq(self).css(dict);
+        }, function(dict){
+            jq(this).css(dict);
         }),
 
         on: function(subject, cb){
@@ -51,7 +50,7 @@ define('dollar/ie8', [
     ext.unbind = ext.off;
 
     $._querySelector = function(context, selector){
-        return $(jq.find(selector, context));
+        return _array_slice.call(jq.find(selector, context));
     };
 
     $.matchesSelector = jq.find.matchesSelector;

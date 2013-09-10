@@ -17,6 +17,7 @@ define("dollar/android23", [
 ], function(es5, _, detect, $){
 
     var ext = $.fn,
+        nodes_access = $._nodesAccess,
         css_method = $.camelize;
 
     _.mix(ext, {
@@ -58,37 +59,41 @@ define("dollar/android23", [
         },
 
         addClass: function(cname){
-            return $._eachNode(this, cname, 'className', function(node, cname){
+            return nodes_access.call(this, cname, function(node, value){
                 var list = class_list(node);
-                if (list.indexOf(cname) === -1) {
-                    list.push(cname);
+                if (list.indexOf(value) === -1) {
+                    list.push(value);
                     node.className = list.join(' ');
                 }
+            }, function(node){
+                return node.className;
             });
         },
 
         removeClass: function(cname){
-            return $._eachNode(this, cname, 'className', function(node, cname){
+            return nodes_access.call(this, cname, function(node, value){
                 var list = class_list(node),
-                    n = list.indexOf(cname);
+                    n = list.indexOf(value);
                 if (n !== -1) {
                     list.splice(n, 1);
                     node.className = list.join(' ');
                 }
+            }, function(node){
+                return node.className;
             });
         },
 
         toggleClass: function(cname, force){
-            return $._eachNode(this, cname, 'className', function(node, cname){
+            return nodes_access.call(this, cname, function(node, value){
                 var list = class_list(node),
-                    n = list.indexOf(cname),
+                    n = list.indexOf(value),
                     is_add = force;
                 if (is_add === undefined) {
                     is_add = n === -1;
                 }
                 if (is_add) {
                     if (n === -1) {
-                        list.push(cname);
+                        list.push(value);
                     }
                 } else {
                     if (n !== -1) {
@@ -96,6 +101,8 @@ define("dollar/android23", [
                     }
                 }
                 node.className = list.join(' ');
+            }, function(node){
+                return node.className;
             });
         }
     
