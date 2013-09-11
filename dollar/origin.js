@@ -580,8 +580,8 @@ define("dollar/origin", [
         return function(value){
             if (arguments.length > 0) {
                 return nodes_access.call(this, value, setter, getter);
-            } else if (this[0]) {
-                return getter.call(this, this[0]);
+            } else {
+                return this[0] ? getter.call(this, this[0]) : undefined;
             }
             return this;
         };
@@ -605,8 +605,8 @@ define("dollar/origin", [
             } else {
                 if (arguments.length > 1) {
                     return nodes_access.call(this, value, setter, getter, name);
-                } else if (this[0]) {
-                    return getter.call(this, this[0], name);
+                } else {
+                    return this[0] ? getter.call(this, this[0], name) : undefined;
                 }
             }
             return this;
