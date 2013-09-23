@@ -381,6 +381,9 @@ define("dollar/origin", [
         // Dimensions
 
         offset: function(){
+            if (!this[0]) {
+                return;
+            }
             var set = this[0].getBoundingClientRect();
             return {
                 left: set.left + window.pageXOffset,
@@ -691,6 +694,9 @@ define("dollar/origin", [
     function dimension(method){
         return function(){
             var node = this[0];
+            if (!node) {
+                return;
+            }
             return is_window(node)
                 ? node['inner' + method]
                 : node.nodeType === 9 
@@ -704,6 +710,9 @@ define("dollar/origin", [
             prop = 'page' + (is_top ? 'Y' : 'X') + 'Offset';
         return function(){
             var node = this[0];
+            if (!node) {
+                return;
+            }
             return is_window(node) ? node[prop] : node[method];
         };
     }
