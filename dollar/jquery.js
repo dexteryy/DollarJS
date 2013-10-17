@@ -36,7 +36,13 @@ define("dollar/jquery", [
             if (typeof event === 'string') {
                 event = new $.Event(event);
             }
-            args[0] = _.mix(event, data);
+            for (var i in data) {
+                if (typeof data[i] !== 'function'
+                        && i !== 'type') {
+                    event[i] = data[i];
+                }
+            }
+            args[0] = event;
         }
         return origin_trigger.apply(this, args);
     };
