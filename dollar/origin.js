@@ -56,7 +56,7 @@ define("dollar/origin", [
                 return selector;
             } else if (typeof selector !== 'string') {
                 var nodes = new $();
-                if (selector.push === _array_push || selector[0]) {
+                if (detect.isArraylike(selector)) {
                     _array_push.apply(nodes, _array_slice.call(selector));
                 } else {
                     _array_push.call(nodes, selector);
