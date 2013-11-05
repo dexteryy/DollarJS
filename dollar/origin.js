@@ -746,10 +746,12 @@ define("dollar/origin", [
         } : function(content){
             insert_node(this, content, action);
         };
-        return function(elms){
+        return function(selector){
             this.forEach(function(node){
                 this.forEach(fn, node);
-            }, $(elms));
+            }, !is_reverse && !RE_HTMLTAG.test(selector) 
+                ? $.createNodes(selector) 
+                : $(selector));
             return this;
         };
     }
@@ -777,7 +779,11 @@ define("dollar/origin", [
     $.find = $;
 
     $._querySelector = function(context, selector){
-        return _array_slice.call(context.querySelectorAll(selector));
+        try {
+            return _array_slice.call(context.querySelectorAll(selector));
+        } catch (ex) {
+            return [];
+        }
     };
 
     $.matchesSelector = function(elm, selector){
