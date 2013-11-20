@@ -749,9 +749,11 @@ define("dollar/origin", [
         return function(selector){
             this.forEach(function(node){
                 this.forEach(fn, node);
-            }, !is_reverse && !RE_HTMLTAG.test(selector) 
-                ? $.createNodes(selector) 
-                : $(selector));
+            }, is_reverse 
+                    || typeof selector !== 'string'
+                    || RE_HTMLTAG.test(selector)
+                ? $(selector)
+                : $.createNodes(selector));
             return this;
         };
     }
