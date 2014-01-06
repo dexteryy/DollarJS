@@ -141,13 +141,26 @@ define("dollar/origin", [
         not: function(selector){
             return this.filter(function(node){
                 return node && !this(node, selector);
-            }, $.matchesSelector);
+            }, $.matches);
+        },
+
+        matches: function(selector){
+            return this.filter(function(node){
+                return node && this(node, selector);
+            }, $.matches);
         },
 
         has: function(selector){
             return this.filter(function(node){
-                return this(node, selector);
-            }, $.matchesSelector);
+                if (!node) {
+                    return false;
+                }
+                if (typeof selector === 'string') {
+                    return $(selector, node).length;
+                } else {
+                    return $.contains(node, $(selector)[0]);
+                }
+            });
         },
 
         parent: find_near('parentNode'),
@@ -208,7 +221,7 @@ define("dollar/origin", [
 
         is: function(selector){
             return this.some(function(node){
-                return $.matchesSelector(node, selector);
+                return node && $.matches(node, selector);
             });
         },
 
@@ -513,7 +526,7 @@ define("dollar/origin", [
             if (attr) {
                 node = node[attr];
             }
-            if ($.matchesSelector(node, selector)) {
+            if ($.matches(node, selector)) {
                 this.push(node);
             }
             return node;
@@ -525,7 +538,7 @@ define("dollar/origin", [
             return $(_.unique([undefined, doc, null].concat(
                 this._map(selector ? function(node){
                     var n = node[prop];
-                    if (n && $.matchesSelector(n, selector)) {
+                    if (n && $.matches(n, selector)) {
                         return n;
                     }
                 } : function(node){
@@ -552,7 +565,7 @@ define("dollar/origin", [
                         break;
                     }
                     if (node !== n && (!selector 
-                        || $.matchesSelector(n, selector))) {
+                        || $.matches(n, selector))) {
                         this.push(n);
                     }
                 } while (n = n[prop]);
@@ -788,8 +801,12 @@ define("dollar/origin", [
         }
     };
 
-    $.matchesSelector = function(elm, selector){
+    $.matches = $.matchesSelector = function(elm, selector){
         return elm && elm.nodeType === 1 && elm[MATCHES_SELECTOR](selector);
+    };
+
+    $.contains = function(parent, elm){
+        return parent !== elm && parent.contains(elm);
     };
 
     $.createNodes = function(str, attrs){

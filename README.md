@@ -69,6 +69,7 @@ var $ = require('dollar');
 * `find()` -- 
 * `eq()` -- 
 * `not()` -- 
+* `matches()` -- 
 * `has()` -- 
 * `parent()` -- 
 * `parents()` -- 
@@ -148,7 +149,8 @@ var $ = require('dollar');
 
 ### Public static API
 
-* `$.matchesSelector` -- 
+* `$.matchesSelector | $.matches` -- 
+* `$.contains` -- 
 * `$.createNodes` -- 
 * `$.camelize` -- 
 * `$.dasherize` -- 
