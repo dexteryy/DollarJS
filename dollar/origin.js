@@ -205,16 +205,16 @@ define("dollar/origin", [
         children: function(){
             var r = new $();
             this.forEach(function(node){
-                this(r, $(node.children));
-            }, _.merge);
+                _array_push.apply(this, _array_slice.call(node.children));
+            }, r);
             return r;
         },
 
         contents: function(){
             var r = new $();
             this.forEach(function(node){
-                this(r, $(node.childNodes));
-            }, _.merge);
+                _array_push.apply(this, _array_slice.call(node.childNodes));
+            }, r);
             return r;
         },
 
