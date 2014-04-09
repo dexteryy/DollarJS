@@ -41,6 +41,12 @@ define("dollar/origin", [
             'zoom': 1
         },
         RE_HTMLTAG = /^\s*<(\w+|!)[^>]*>/,
+        RE_ID_SEL = /^#[\w_]+$/,
+        RE_CSS_NAME = /-+(.)?/g,
+        RE_CAMEL = /([a-z\d])([A-Z])/g,
+        RE_CAMEL_BEGIN_WITH_CAP = /([A-Z]+)([A-Z][a-z])/g,
+        RE_DOUBLE_COLON = /::/g,
+        RE_UNDER = /_/g,
         is_function = detect.isFunction,
         is_window = detect.isWindow,
         _array_map = Array.prototype.map,
@@ -114,9 +120,14 @@ define("dollar/origin", [
             } else {
                 nodes.prevObject = contexts = this;
             }
-            if (/^#[\w_]+$/.test(selector)) {
-                var elm = ((contexts[0] || doc).getElementById 
-                    || doc.getElementById).call(doc, selector.substr(1));
+            if (RE_ID_SEL.test(selector)) {
+                contexts = contexts[0];
+                selector = selector.substr(1);
+                var context_query = contexts !== doc 
+                    && contexts && contexts.getElementById;
+                var elm = context_query 
+                    ? context_query.call(contexts, selector)
+                    : doc.getElementById(selector);
                 if (elm) {
                     nodes.push(elm);
                 }
@@ -672,16 +683,18 @@ define("dollar/origin", [
     }
 
     function css_method(name){
-        return name.replace(/-+(.)?/g, function($0, $1){
-            return $1 ? $1.toUpperCase() : '';
-        }); 
+        return name.replace(RE_CSS_NAME, replace_css_method); 
+    }
+
+    function replace_css_method($0, $1){
+        return $1 ? $1.toUpperCase() : '';
     }
 
     function css_prop(name) {
-        return name.replace(/::/g, '/')
-            .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
-            .replace(/([a-z\d])([A-Z])/g, '$1_$2')
-            .replace(/_/g, '-')
+        return name.replace(RE_DOUBLE_COLON, '/')
+            .replace(RE_CAMEL_BEGIN_WITH_CAP, '$1_$2')
+            .replace(RE_CAMEL, '$1_$2')
+            .replace(RE_UNDER, '-')
             .toLowerCase();
     }
 
