@@ -16,108 +16,108 @@ define("dollar/android23", [
     "dollar/origin"
 ], function(es5, _, detect, $){
 
-    var ext = $.fn,
-        nodes_access = $._nodesAccess,
-        css_method = $.camelize;
+var ext = $.fn,
+    nodes_access = $._nodesAccess,
+    css_method = $.camelize;
 
-    _.mix(ext, {
+_.mix(ext, {
 
-        data: $._kvAccess(function(node, name, value){
-            node.setAttribute('data-' + prop2data(name), value);
-        }, function(node, name){
-            if (name) {
-                return node.getAttribute('data-' + prop2data(name));
-            } else {
-                var data = {};
-                node.outerHTML
-                    .replace(node.innerHTML, '')
-                    .split(/\s+/)
-                    .forEach(function(html){ 
-                        var attr = (/^data-([\w\-]+)/.exec(html) || []); 
-                        if (attr[0]) {
-                            this[css_method(attr[1])] = node.getAttribute(attr[0]);
-                        }
-                    }, data);
-                return data;
+    data: $._kvAccess(function(node, name, value){
+        node.setAttribute('data-' + prop2data(name), value);
+    }, function(node, name){
+        if (name) {
+            return node.getAttribute('data-' + prop2data(name));
+        } else {
+            var data = {};
+            node.outerHTML
+                .replace(node.innerHTML, '')
+                .split(/\s+/)
+                .forEach(function(html){ 
+                    var attr = (/^data-([\w\-]+)/.exec(html) || []); 
+                    if (attr[0]) {
+                        this[css_method(attr[1])] = node.getAttribute(attr[0]);
+                    }
+                }, data);
+            return data;
+        }
+    }),
+
+    removeData: function(name){
+        this.forEach(function(node){
+            node.removeAttribute('data-' + prop2data(this));
+        }, name);
+        return this;
+    },
+
+    hasClass: function(cname){
+        for (var i = 0, l = this.length; i < l; i++) {
+            if (class_list(this[i]).indexOf(cname) !== -1) {
+                return true;
             }
-        }),
+        }
+        return false;
+    },
 
-        removeData: function(name){
-            this.forEach(function(node){
-                node.removeAttribute('data-' + prop2data(this));
-            }, name);
-            return this;
-        },
-
-        hasClass: function(cname){
-            for (var i = 0, l = this.length; i < l; i++) {
-                if (class_list(this[i]).indexOf(cname) !== -1) {
-                    return true;
-                }
+    addClass: function(cname){
+        return nodes_access.call(this, cname, function(node, value){
+            var list = class_list(node);
+            if (list.indexOf(value) === -1) {
+                list.push(value);
+                node.className = list.join(' ');
             }
-            return false;
-        },
+        }, function(node){
+            return node.className;
+        });
+    },
 
-        addClass: function(cname){
-            return nodes_access.call(this, cname, function(node, value){
-                var list = class_list(node);
-                if (list.indexOf(value) === -1) {
+    removeClass: function(cname){
+        return nodes_access.call(this, cname, function(node, value){
+            var list = class_list(node),
+                n = list.indexOf(value);
+            if (n !== -1) {
+                list.splice(n, 1);
+                node.className = list.join(' ');
+            }
+        }, function(node){
+            return node.className;
+        });
+    },
+
+    toggleClass: function(cname, force){
+        return nodes_access.call(this, cname, function(node, value){
+            var list = class_list(node),
+                n = list.indexOf(value),
+                is_add = force;
+            if (is_add === undefined) {
+                is_add = n === -1;
+            }
+            if (is_add) {
+                if (n === -1) {
                     list.push(value);
-                    node.className = list.join(' ');
                 }
-            }, function(node){
-                return node.className;
-            });
-        },
-
-        removeClass: function(cname){
-            return nodes_access.call(this, cname, function(node, value){
-                var list = class_list(node),
-                    n = list.indexOf(value);
+            } else {
                 if (n !== -1) {
                     list.splice(n, 1);
-                    node.className = list.join(' ');
                 }
-            }, function(node){
-                return node.className;
-            });
-        },
-
-        toggleClass: function(cname, force){
-            return nodes_access.call(this, cname, function(node, value){
-                var list = class_list(node),
-                    n = list.indexOf(value),
-                    is_add = force;
-                if (is_add === undefined) {
-                    is_add = n === -1;
-                }
-                if (is_add) {
-                    if (n === -1) {
-                        list.push(value);
-                    }
-                } else {
-                    if (n !== -1) {
-                        list.splice(n, 1);
-                    }
-                }
-                node.className = list.join(' ');
-            }, function(node){
-                return node.className;
-            });
-        }
-    
-    });
-
-    function prop2data(name){
-        return name.replace(/([A-Z])/g, function($0, $1){ 
-            return '-' + $1.toLowerCase(); 
+            }
+            node.className = list.join(' ');
+        }, function(node){
+            return node.className;
         });
     }
 
-    function class_list(elm){
-        return elm.className.split(/\s+/);
-    }
+});
 
-    return $;
+function prop2data(name){
+    return name.replace(/([A-Z])/g, function($0, $1){ 
+        return '-' + $1.toLowerCase(); 
+    });
+}
+
+function class_list(elm){
+    return elm.className.split(/\s+/);
+}
+
+return $;
 
 });
